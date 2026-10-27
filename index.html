@@ -32,6 +32,8 @@
         .btn-primary:hover { background: #1d4ed8; }
         .btn-success { background: #059669; color: white; }
         .btn-success:hover { background: #047857; }
+        .btn-info { background: #0284c7; color: white; }
+        .btn-info:hover { background: #0369a1; }
         .btn-dark { background: #334155; color: white; }
         .btn-dark:hover { background: #1e293b; }
         .btn-outline-danger { background: transparent; color: #dc2626; border: 1px solid #fca5a5; }
@@ -55,7 +57,6 @@
         .stat-value.blue { color: #2563eb; }
         .stat-value.purple { color: #7c3aed; }
         .stat-value.green { color: #059669; }
-        .stat-value.amber { color: #d97706; }
         .stat-value.red { color: #dc2626; }
         
         /* Table Controls & Card */
@@ -197,24 +198,28 @@
                         <p style="font-size: 0.75rem; color: #64748b;">Kelola Part Number, Serial Number, Kuantitas, dan Kondisi Fisik Alat</p>
                     </div>
                     <div class="flex items-center gap-2 search-filter-box" style="flex-wrap: wrap;">
-                        <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Cari barang / P/N / S/N..." class="form-control" style="width: 180px;">
+                        <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Cari barang / P/N / S/N..." class="form-control" style="width: 170px;">
                         
                         <!-- Filter Status Transaksi -->
-                        <select id="filter-status" onchange="renderTable()" class="form-control" style="width: 150px;">
+                        <select id="filter-status" onchange="renderTable()" class="form-control" style="width: 140px;">
                             <option value="ALL">Semua Status</option>
                             <option value="MASUK">Masuk / Tersedia</option>
                             <option value="KELUAR">Keluar / Dipinjam</option>
                         </select>
 
                         <!-- Filter Kondisi Fisik -->
-                        <select id="filter-kondisi" onchange="renderTable()" class="form-control" style="width: 140px;">
+                        <select id="filter-kondisi" onchange="renderTable()" class="form-control" style="width: 130px;">
                             <option value="ALL">Semua Kondisi</option>
                             <option value="B">B (Baik)</option>
                             <option value="RR">RR (Rusak Ringan)</option>
                             <option value="RB">RB (Rusak Berat)</option>
                         </select>
+
+                        <!-- Input File Tersembunyi untuk Import CSV/Excel -->
+                        <input type="file" id="import-file-input" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
                         
-                        <button onclick="exportToCSV()" class="btn btn-success btn-sm">📥 CSV</button>
+                        <button onclick="triggerImport()" class="btn btn-info btn-sm">📥 Import Excel</button>
+                        <button onclick="exportToCSV()" class="btn btn-success btn-sm">📤 Export CSV</button>
                         <button onclick="printReport()" class="btn btn-dark btn-sm">🖨 Cetak PDF</button>
                         <button onclick="openModal()" class="btn btn-primary btn-sm" style="width: auto;">➕ Tambah Tools</button>
                     </div>
@@ -302,7 +307,7 @@
 
     <!-- ================= 4. JAVASCRIPT LOGIC ================= -->
     <script>
-        // Data Sampel Lengkap (Barang Masuk & Dipinjam Keluar)
+        // Data Sampel Awal
         const initialData = [
             { id: 1, nama: "Digital Multimeter Fluke 87V", pn: "FLUKE-87V", sn: "SN-8834920", qty: 5, status: "MASUK", kondisi: "B", keterangan: "Tersedia di Rak A1" },
             { id: 2, nama: "Torque Wrench 1/2 Inch", pn: "TW-500-12", sn: "SN-1029384", qty: 2, status: "KELUAR", kondisi: "RR", keterangan: "Dipinjam Budi (Tim Maint. Area 2)" },
@@ -437,16 +442,81 @@
             document.getElementById("stat-kondisi-rusak").innerText = inventoryList.filter(i => i.kondisi === "RR" || i.kondisi === "RB").length;
         }
 
-        // Print Feature
-        function printReport() {
-            const now = new Date();
-            document.getElementById("print-date").innerText = now.toLocaleDateString("id-ID", {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            });
-            window.print();
+        // ================= 5. FITUR IMPORT CSV / EXCEL =================
+        function triggerImport() {
+            document.getElementById("import-file-input").click();
         }
 
-        // CSV Export Feature
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseAndImportCSV(text);
+                // Reset input file
+                event.target.value = "";
+            };
+            reader.readAsText(file);
+        }
+
+        function parseAndImportCSV(csvText) {
+            const lines = csvText.split(/\r\n|\n/);
+            if (lines.length < 2) {
+                alert("File CSV/Excel kosong atau format tidak sesuai!");
+                return;
+            }
+
+            let importedCount = 0;
+
+            // Loop setiap baris data (melewati header baris ke-0)
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                // Trik regex untuk memisah koma tetapi mengabaikan koma di dalam tanda kutip
+                const cols = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
+                const cleanCols = cols.map(c => c.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+
+                if (cleanCols.length >= 4) {
+                    // Deteksi posisi kolom (Apakah ada kolom 'No' di awal)
+                    let offset = (isNaN(cleanCols[0]) && cleanCols[0].length > 0 && !cleanCols[0].match(/^\d+$/)) ? 0 : 1;
+
+                    let nama = cleanCols[offset] || "Tools Baru";
+                    let pn = cleanCols[offset + 1] || "PN-GENERIC";
+                    let sn = cleanCols[offset + 2] || "SN-GENERIC";
+                    let qty = parseInt(cleanCols[offset + 3]) || 1;
+                    
+                    let statusRaw = (cleanCols[offset + 4] || "MASUK").toUpperCase();
+                    let status = (statusRaw.includes("KELUAR") || statusRaw.includes("PINJAM")) ? "KELUAR" : "MASUK";
+                    
+                    let kondisiRaw = (cleanCols[offset + 5] || "B").toUpperCase();
+                    let kondisi = "B";
+                    if (kondisiRaw.includes("RR") || kondisiRaw.includes("RINGAN")) kondisi = "RR";
+                    else if (kondisiRaw.includes("RB") || kondisiRaw.includes("BERAT")) kondisi = "RB";
+
+                    let keterangan = cleanCols[offset + 6] || "Hasil Import CSV";
+
+                    // Tambahkan ke array utama
+                    inventoryList.push({
+                        id: Date.now() + i,
+                        nama, pn, sn, qty, status, kondisi, keterangan
+                    });
+
+                    importedCount++;
+                }
+            }
+
+            if (importedCount > 0) {
+                saveState();
+                alert(`✅ Berhasil mengimpor ${importedCount} data tools dari berkas Excel/CSV!`);
+            } else {
+                alert("Gagal membaca baris data. Pastikan format kolom sesuai dengan hasil Export CSV.");
+            }
+        }
+
+        // Export CSV Feature
         function exportToCSV() {
             if (inventoryList.length === 0) {
                 alert("Tidak ada data inventaris!");
@@ -481,6 +551,15 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
+        }
+
+        // Print Feature
+        function printReport() {
+            const now = new Date();
+            document.getElementById("print-date").innerText = now.toLocaleDateString("id-ID", {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            window.print();
         }
 
         // Modal Form Handlers
