@@ -48,10 +48,12 @@
         main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
         
         /* Dashboard Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .stat-card { background: white; padding: 1.25rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; }
         .stat-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; }
         .stat-value { font-size: 1.5rem; font-weight: 700; margin-top: 0.5rem; color: #1e293b; }
+        .stat-value.blue { color: #2563eb; }
+        .stat-value.purple { color: #7c3aed; }
         .stat-value.green { color: #059669; }
         .stat-value.amber { color: #d97706; }
         .stat-value.red { color: #dc2626; }
@@ -170,16 +172,20 @@
                     <div id="stat-total-qty" class="stat-value">0</div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-title">Tersedia (Masuk)</div>
+                    <div id="stat-total-masuk" class="stat-value blue">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Dipinjam (Keluar)</div>
+                    <div id="stat-total-keluar" class="stat-value purple">0</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-title">Baik (B)</div>
                     <div id="stat-kondisi-b" class="stat-value green">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">Rusak Ringan (RR)</div>
-                    <div id="stat-kondisi-rr" class="stat-value amber">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Rusak Berat (RB)</div>
-                    <div id="stat-kondisi-rb" class="stat-value red">0</div>
+                    <div class="stat-title">Rusak (RR / RB)</div>
+                    <div id="stat-kondisi-rusak" class="stat-value red">0</div>
                 </div>
             </div>
 
@@ -191,8 +197,16 @@
                         <p style="font-size: 0.75rem; color: #64748b;">Kelola Part Number, Serial Number, Kuantitas, dan Kondisi Fisik Alat</p>
                     </div>
                     <div class="flex items-center gap-2 search-filter-box" style="flex-wrap: wrap;">
-                        <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Cari barang / P/N / S/N..." class="form-control" style="width: 200px;">
+                        <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Cari barang / P/N / S/N..." class="form-control" style="width: 180px;">
                         
+                        <!-- Filter Status Transaksi -->
+                        <select id="filter-status" onchange="renderTable()" class="form-control" style="width: 150px;">
+                            <option value="ALL">Semua Status</option>
+                            <option value="MASUK">Masuk / Tersedia</option>
+                            <option value="KELUAR">Keluar / Dipinjam</option>
+                        </select>
+
+                        <!-- Filter Kondisi Fisik -->
                         <select id="filter-kondisi" onchange="renderTable()" class="form-control" style="width: 140px;">
                             <option value="ALL">Semua Kondisi</option>
                             <option value="B">B (Baik)</option>
@@ -259,10 +273,10 @@
                         <input type="number" id="qty" min="1" class="form-control" required placeholder="1">
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label>Status *</label>
+                        <label>Status Transaksi *</label>
                         <select id="status-transaksi" class="form-control">
-                            <option value="MASUK">Masuk</option>
-                            <option value="KELUAR">Keluar</option>
+                            <option value="MASUK">Masuk / Tersedia</option>
+                            <option value="KELUAR">Keluar / Dipinjam</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
@@ -275,8 +289,8 @@
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label>Keterangan</label>
-                    <textarea id="keterangan" class="form-control" rows="2" placeholder="Catatan lokasi rak, peminjam, dll"></textarea>
+                    <label>Keterangan / Peminjam</label>
+                    <textarea id="keterangan" class="form-control" rows="2" placeholder="Catatan lokasi rak, peminjam (misal: Dipinjam Budi Tim Maint)"></textarea>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
                     <button type="button" onclick="closeModal()" class="btn btn-dark btn-sm" style="background: #e2e8f0; color: #334155;">Batal</button>
@@ -288,15 +302,19 @@
 
     <!-- ================= 4. JAVASCRIPT LOGIC ================= -->
     <script>
-        // Sample Initial Data
+        // Data Sampel Lengkap (Barang Masuk & Dipinjam Keluar)
         const initialData = [
-            { id: 1, nama: "Digital Multimeter Fluke 87V", pn: "FLUKE-87V", sn: "SN-8834920", qty: 5, status: "MASUK", kondisi: "B", keterangan: "Siap pakai di rak A1" },
-            { id: 2, nama: "Torque Wrench 1/2 Inch", pn: "TW-500-12", sn: "SN-1029384", qty: 2, status: "KELUAR", kondisi: "RR", keterangan: "Dipinjam Tim Maintenance Area 2" },
+            { id: 1, nama: "Digital Multimeter Fluke 87V", pn: "FLUKE-87V", sn: "SN-8834920", qty: 5, status: "MASUK", kondisi: "B", keterangan: "Tersedia di Rak A1" },
+            { id: 2, nama: "Torque Wrench 1/2 Inch", pn: "TW-500-12", sn: "SN-1029384", qty: 2, status: "KELUAR", kondisi: "RR", keterangan: "Dipinjam Budi (Tim Maint. Area 2)" },
             { id: 3, nama: "Impact Wrench Cordless DeWalt", pn: "DCF899B", sn: "SN-5541290", qty: 1, status: "MASUK", kondisi: "RB", keterangan: "Perlu perbaikan motor dinamo" },
-            { id: 4, nama: "Oscilloscope Portable Tektronix", pn: "TBS1052B", sn: "SN-7721098", qty: 3, status: "MASUK", kondisi: "B", keterangan: "Terkalibrasi s/d Des 2026" }
+            { id: 4, nama: "Oscilloscope Portable Tektronix", pn: "TBS1052B", sn: "SN-7721098", qty: 3, status: "MASUK", kondisi: "B", keterangan: "Terkalibrasi s/d Des 2026" },
+            { id: 5, nama: "Hydraulic Jack 20 Ton", pn: "HJ-20T-02", sn: "SN-3049581", qty: 1, status: "KELUAR", kondisi: "B", keterangan: "Dipinjam Dedi (Proyek Rigging Hangar B)" },
+            { id: 6, nama: "Angle Grinder Bosch GWS 7-100", pn: "GWS7100", sn: "SN-9021844", qty: 4, status: "MASUK", kondisi: "B", keterangan: "Pengembalian dari Workshop 1" },
+            { id: 7, nama: "Laser Distance Meter Leica Disto", pn: "DISTO-D2", sn: "SN-4410293", qty: 1, status: "KELUAR", kondisi: "B", keterangan: "Dipinjam Siti (Surveyor Civil)" },
+            { id: 8, nama: "Insulation Tester Megger MIT420", pn: "MIT420-2", sn: "SN-6781204", qty: 2, status: "MASUK", kondisi: "RR", keterangan: "Kabel probe agak longgar" }
         ];
 
-        // Persistent State via LocalStorage
+        // State Management via LocalStorage
         let inventoryList = JSON.parse(localStorage.getItem("tool_inventory")) || initialData;
 
         // Auto Check Session
@@ -353,6 +371,7 @@
             const tbody = document.getElementById("inventory-tbody");
             const searchKeyword = document.getElementById("search-input").value.toLowerCase();
             const filterKondisi = document.getElementById("filter-kondisi").value;
+            const filterStatus = document.getElementById("filter-status").value;
 
             tbody.innerHTML = "";
 
@@ -363,8 +382,9 @@
                                       item.keterangan.toLowerCase().includes(searchKeyword);
                 
                 const matchesKondisi = filterKondisi === "ALL" || item.kondisi === filterKondisi;
+                const matchesStatus = filterStatus === "ALL" || item.status === filterStatus;
 
-                return matchesSearch && matchesKondisi;
+                return matchesSearch && matchesKondisi && matchesStatus;
             });
 
             if (filteredData.length === 0) {
@@ -384,7 +404,7 @@
 
                     let badgeStatus = item.status === "MASUK" 
                         ? `<span class="badge badge-masuk">⬇ Masuk</span>`
-                        : `<span class="badge badge-keluar">⬆ Keluar</span>`;
+                        : `<span class="badge badge-keluar">⬆ Keluar (Dipinjam)</span>`;
 
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
@@ -411,9 +431,10 @@
         function updateStats() {
             document.getElementById("stat-total-items").innerText = inventoryList.length;
             document.getElementById("stat-total-qty").innerText = inventoryList.reduce((sum, item) => sum + Number(item.qty), 0);
+            document.getElementById("stat-total-masuk").innerText = inventoryList.filter(i => i.status === "MASUK").length;
+            document.getElementById("stat-total-keluar").innerText = inventoryList.filter(i => i.status === "KELUAR").length;
             document.getElementById("stat-kondisi-b").innerText = inventoryList.filter(i => i.kondisi === "B").length;
-            document.getElementById("stat-kondisi-rr").innerText = inventoryList.filter(i => i.kondisi === "RR").length;
-            document.getElementById("stat-kondisi-rb").innerText = inventoryList.filter(i => i.kondisi === "RB").length;
+            document.getElementById("stat-kondisi-rusak").innerText = inventoryList.filter(i => i.kondisi === "RR" || i.kondisi === "RB").length;
         }
 
         // Print Feature
@@ -435,13 +456,14 @@
             const headers = ["No", "Nama Barang", "Part Number (P/N)", "Serial Number (S/N)", "QTY", "Status Transaksi", "Kondisi", "Keterangan"];
             const rows = inventoryList.map((item, index) => {
                 let deskripsiKondisi = item.kondisi === 'B' ? 'B (Baik)' : item.kondisi === 'RR' ? 'RR (Rusak Ringan)' : 'RB (Rusak Berat)';
+                let statusTxt = item.status === 'MASUK' ? 'Masuk / Tersedia' : 'Keluar / Dipinjam';
                 return [
                     index + 1,
                     `"${item.nama.replace(/"/g, '""')}"`,
                     `"${item.pn.replace(/"/g, '""')}"`,
                     `"${item.sn.replace(/"/g, '""')}"`,
                     item.qty,
-                    `"${item.status}"`,
+                    `"${statusTxt}"`,
                     `"${deskripsiKondisi}"`,
                     `"${(item.keterangan || '').replace(/"/g, '""')}"`
                 ];
@@ -451,7 +473,7 @@
             const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T');
             
             link.setAttribute("href", url);
             link.setAttribute("download", `inventaris_tools_${today}.csv`);
