@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portofolio Web Daftar Inventaris Tools</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="[suspicious link removed]"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="[suspicious link removed]">
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen">
+
+    <!-- ================= 1. HALAMAN LOGIN ================= -->
+    <div id="login-section" class="flex items-center justify-center min-h-screen px-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-2xl mb-4 shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid fa-boxes-stacked text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800">Inventaris Tools App</h1>
+                <p class="text-slate-500 text-sm mt-1">Portofolio Sistem Manajemen Peralatan</p>
+            </div>
+
+            <!-- Pesan Error Login (Constraint) -->
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-700 text-sm rounded-xl text-center">
+                <i class="fa-solid fa-circle-exclamation mr-1"></i> Username atau Password salah! Akses ditolak.
+            </div>
+
+            <form id="login-form" class="space-y-5" onsubmit="handleLogin(event)">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Username</label>
+                    <input type="text" id="username" required placeholder="Masukkan username" 
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+                    <input type="password" id="password" required placeholder="Masukkan password" 
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <button type="submit" 
+                    class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/30 transition duration-200">
+                    Masuk ke Sistem <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>
+                </button>
+            </form>
+
+            <div class="mt-6 text-center bg-slate-50 p-3 rounded-xl text-xs text-slate-500 border border-slate-200">
+                <p class="font-semibold text-slate-600">Credential Akses Demo:</p>
+                <p class="mt-0.5">Username: <span class="font-mono text-blue-600 font-bold">admin</span> | Password: <span class="font-mono text-blue-600 font-bold">admin123</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 2. DASHBOARD & APLIKASI UTAMA ================= -->
+    <div id="app-section" class="hidden min-h-screen flex flex-col">
+        <!-- Navigation Header -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-slate-800 leading-tight">Inventaris Tools Management</h1>
+                        <p class="text-xs text-slate-500">Portofolio Admin Dashboard</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium text-slate-600 hidden sm:inline-block">
+                        <i class="fa-solid fa-user-gear text-blue-600 mr-1.5"></i> Admin Operator
+                    </span>
+                    <button onclick="handleLogout()" 
+                        class="px-3.5 py-2 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition flex items-center gap-2 font-medium">
+                        <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+            
+            <!-- Dashboard Summary Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                        <span>Total Jenis Tools</span>
+                        <i class="fa-solid fa-toolbox text-blue-500 text-lg"></i>
+                    </div>
+                    <div id="stat-total-items" class="text-2xl font-bold text-slate-800 mt-2">0</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                        <span>Total QTY Stok</span>
+                        <i class="fa-solid fa-layer-group text-indigo-500 text-lg"></i>
+                    </div>
+                    <div id="stat-total-qty" class="text-2xl font-bold text-slate-800 mt-2">0</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                        <span>Baik (B)</span>
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>
+                    </div>
+                    <div id="stat-kondisi-b" class="text-2xl font-bold text-emerald-600 mt-2">0</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                        <span>Rusak Ringan (RR)</span>
+                        <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg"></i>
+                    </div>
+                    <div id="stat-kondisi-rr" class="text-2xl font-bold text-amber-600 mt-2">0</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                        <span>Rusak Berat (RB)</span>
+                        <i class="fa-solid fa-circle-xmark text-red-500 text-lg"></i>
+                    </div>
+                    <div id="stat-kondisi-rb" class="text-2xl font-bold text-red-600 mt-2">0</div>
+                </div>
+            </div>
+
+            <!-- Table Controls & Inventory List -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Daftar Inventaris Tools Keluar / Masuk</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Kelola Part Number, Serial Number, Kuantitas, dan Kondisi Fisik Alat</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Cari barang / P/N / S/N..." 
+                                class="pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
+                        </div>
+                        <select id="filter-kondisi" onchange="renderTable()" class="px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ALL">Semua Kondisi</option>
+                            <option value="B">B (Baik)</option>
+                            <option value="RR">RR (Rusak Ringan)</option>
+                            <option value="RB">RB (Rusak Berat)</option>
+                        </select>
+                        
+                        <!-- Tombol Ekspor CSV/Excel -->
+                        <button onclick="exportToCSV()" 
+                            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-emerald-500/20 transition flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel"></i> Ekspor CSV
+                        </button>
+
+                        <button onclick="openModal()" 
+                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-500/20 transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Tambah Inventaris
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Content -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="py-3.5 px-4">No</th>
+                                <th class="py-3.5 px-4">Nama Barang</th>
+                                <th class="py-3.5 px-4">Part Number (P/N)</th>
+                                <th class="py-3.5 px-4">Serial Number (S/N)</th>
+                                <th class="py-3.5 px-4 text-center">QTY</th>
+                                <th class="py-3.5 px-4 text-center">Status Transaksi</th>
+                                <th class="py-3.5 px-4 text-center">Kondisi</th>
+                                <th class="py-3.5 px-4">Keterangan</th>
+                                <th class="py-3.5 px-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-tbody" class="divide-y divide-slate-200">
+                            <!-- Populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= 3. MODAL FORM INVENTARIS ================= -->
+    <div id="modal-form" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <h3 id="modal-title" class="font-bold text-slate-800 text-lg">Tambah Tools Inventaris</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+            <form id="tool-form" onsubmit="handleSaveItem(event)" class="p-6 space-y-4">
+                <input type="hidden" id="item-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Barang *</label>
+                    <input type="text" id="nama-barang" required placeholder="Contoh: Digital Multimeter Fluke 87V" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Part Number (P/N) *</label>
+                        <input type="text" id="pn" required placeholder="PN-87V-01" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Serial Number (S/N) *</label>
+                        <input type="text" id="sn" required placeholder="SN-9823411" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">QTY *</label>
+                        <input type="number" id="qty" min="1" required placeholder="1" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Status Keluar/Masuk *</label>
+                        <select id="status-transaksi" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="MASUK">Masuk</option>
+                            <option value="KELUAR">Keluar</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kondisi *</label>
+                        <select id="kondisi" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="B">B (Baik)</option>
+                            <option value="RR">RR (Rusak Ringan)</option>
+                            <option value="RB">RB (Rusak Berat)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Keterangan</label>
+                    <textarea id="keterangan" rows="2" placeholder="Lokasi penyimpanan rak, peminjam, atau status kalibrasi" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium">Batal</button>
+                    <button type="submit" class="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md shadow-blue-500/20">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= 4. JAVASCRIPT APP LOGIC ================= -->
+    <script>
+        // Initial Sample Data
+        const initialData = [
+            { id: 1, nama: "Digital Multimeter Fluke 87V", pn: "FLUKE-87V", sn: "SN-8834920", qty: 5, status: "MASUK", kondisi: "B", keterangan: "Siap pakai di rak A1" },
+            { id: 2, nama: "Torque Wrench 1/2 Inch", pn: "TW-500-12", sn: "SN-1029384", qty: 2, status: "KELUAR", kondisi: "RR", keterangan: "Dipinjam Tim Maintenance Area 2" },
+            { id: 3, nama: "Impact Wrench Cordless DeWalt", pn: "DCF899B", sn: "SN-5541290", qty: 1, status: "MASUK", kondisi: "RB", keterangan: "Perlu perbaikan motor dinamo" },
+            { id: 4, nama: "Oscilloscope Portable Tektronix", pn: "TBS1052B", sn: "SN-7721098", qty: 3, status: "MASUK", kondisi: "B", keterangan: "Terkalibrasi s/d Des 2026" }
+        ];
+
+        // State Management
+        let inventoryList = JSON.parse(localStorage.getItem("tool_inventory")) || initialData;
+
+        // Cek Sesi Autentikasi
+        window.addEventListener("DOMContentLoaded", () => {
+            const isAuth = localStorage.getItem("isLoggedIn");
+            if (isAuth === "true") {
+                showApp();
+            } else {
+                showLogin();
+            }
+        });
+
+        // Constraint Validasi Login
+        function handleLogin(event) {
+            event.preventDefault();
+            const user = document.getElementById("username").value.trim();
+            const pass = document.getElementById("password").value.trim();
+            const errorDiv = document.getElementById("login-error");
+
+            if (user === "admin" && pass === "admin123") {
+                localStorage.setItem("isLoggedIn", "true");
+                errorDiv.classList.add("hidden");
+                showApp();
+            } else {
+                errorDiv.classList.remove("hidden");
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem("isLoggedIn");
+            showLogin();
+        }
+
+        function showLogin() {
+            document.getElementById("login-section").classList.remove("hidden");
+            document.getElementById("app-section").classList.add("hidden");
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+        }
+
+        function showApp() {
+            document.getElementById("login-section").classList.add("hidden");
+            document.getElementById("app-section").classList.remove("hidden");
+            renderTable();
+        }
+
+        function saveState() {
+            localStorage.setItem("tool_inventory", JSON.stringify(inventoryList));
+            renderTable();
+        }
+
+        // Render Tabel Data & Indikator Statistik
+        function renderTable() {
+            const tbody = document.getElementById("inventory-tbody");
+            const searchKeyword = document.getElementById("search-input").value.toLowerCase();
+            const filterKondisi = document.getElementById("filter-kondisi").value;
+
+            tbody.innerHTML = "";
+
+            const filteredData = inventoryList.filter(item => {
+                const matchesSearch = item.nama.toLowerCase().includes(searchKeyword) ||
+                                      item.pn.toLowerCase().includes(searchKeyword) ||
+                                      item.sn.toLowerCase().includes(searchKeyword) ||
+                                      item.keterangan.toLowerCase().includes(searchKeyword);
+                
+                const matchesKondisi = filterKondisi === "ALL" || item.kondisi === filterKondisi;
+
+                return matchesSearch && matchesKondisi;
+            });
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="py-8 text-center text-slate-400">
+                            <i class="fa-solid fa-box-open text-3xl mb-2"></i>
+                            <p class="text-sm">Data inventaris tidak ditemukan.</p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                filteredData.forEach((item, index) => {
+                    let badgeKondisi = "";
+                    if (item.kondisi === "B") {
+                        badgeKondisi = `<span class="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-100 rounded-full">B (Baik)</span>`;
+                    } else if (item.kondisi === "RR") {
+                        badgeKondisi = `<span class="px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-100 rounded-full">RR (Rusak Ringan)</span>`;
+                    } else if (item.kondisi === "RB") {
+                        badgeKondisi = `<span class="px-2.5 py-1 text-xs font-semibold text-red-700 bg-red-100 rounded-full">RB (Rusak Berat)</span>`;
+                    }
+
+                    let badgeStatus = item.status === "MASUK" 
+                        ? `<span class="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded"><i class="fa-solid fa-arrow-down-long text-blue-500"></i> Masuk</span>`
+                        : `<span class="px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded"><i class="fa-solid fa-arrow-up-long text-purple-500"></i> Keluar</span>`;
+
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition";
+                    tr.innerHTML = `
+                        <td class="py-3.5 px-4 font-medium text-slate-500 text-center">${index + 1}</td>
+                        <td class="py-3.5 px-4 font-semibold text-slate-800">${item.nama}</td>
+                        <td class="py-3.5 px-4 font-mono text-xs text-slate-600">${item.pn}</td>
+                        <td class="py-3.5 px-4 font-mono text-xs text-slate-600">${item.sn}</td>
+                        <td class="py-3.5 px-4 text-center font-bold text-slate-700">${item.qty}</td>
+                        <td class="py-3.5 px-4 text-center">${badgeStatus}</td>
+                        <td class="py-3.5 px-4 text-center">${badgeKondisi}</td>
+                        <td class="py-3.5 px-4 text-xs text-slate-500 max-w-xs truncate">${item.keterangan || "-"}</td>
+                        <td class="py-3.5 px-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="editItem(${item.id})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteItem(${item.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition" title="Hapus">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById("stat-total-items").innerText = inventoryList.length;
+            document.getElementById("stat-total-qty").innerText = inventoryList.reduce((sum, item) => sum + Number(item.qty), 0);
+            document.getElementById("stat-kondisi-b").innerText = inventoryList.filter(i => i.kondisi === "B").length;
+            document.getElementById("stat-kondisi-rr").innerText = inventoryList.filter(i => i.kondisi === "RR").length;
+            document.getElementById("stat-kondisi-rb").innerText = inventoryList.filter(i => i.kondisi === "RB").length;
+        }
+
+        // ================= 5. FITUR EKSPOR CSV / EXCEL =================
+        function exportToCSV() {
+            if (inventoryList.length === 0) {
+                alert("Tidak ada data inventaris untuk diekspor!");
+                return;
+            }
+
+            // Header Kolom CSV
+            const headers = ["No", "Nama Barang", "Part Number (P/N)", "Serial Number (S/N)", "QTY", "Status Transaksi", "Kondisi", "Keterangan"];
+
+            // Format Baris Data
+            const rows = inventoryList.map((item, index) => {
+                let deskripsiKondisi = item.kondisi === 'B' ? 'B (Baik)' : item.kondisi === 'RR' ? 'RR (Rusak Ringan)' : 'RB (Rusak Berat)';
+                return [
+                    index + 1,
+                    `"${item.nama.replace(/"/g, '""')}"`,
+                    `"${item.pn.replace(/"/g, '""')}"`,
+                    `"${item.sn.replace(/"/g, '""')}"`,
+                    item.qty,
+                    `"${item.status}"`,
+                    `"${deskripsiKondisi}"`,
+                    `"${(item.keterangan || '').replace(/"/g, '""')}"`
+                ];
+            });
+
+            // Menambahkan UTF-8 BOM (\uFEFF) agar Microsoft Excel membaca karakter dengan benar
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+
+            // Membuat Blob & Trigger Download otomatis
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const today = new Date().toISOString().split('T')[0];
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `inventaris_tools_${today}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Kontrol Modal
+        function openModal() {
+            document.getElementById("modal-form").classList.remove("hidden");
+            document.getElementById("modal-title").innerText = "Tambah Tools Inventaris";
+            document.getElementById("tool-form").reset();
+            document.getElementById("item-id").value = "";
+        }
+
+        function closeModal() {
+            document.getElementById("modal-form").classList.add("hidden");
+        }
+
+        // Operasi CRUD
+        function handleSaveItem(event) {
+            event.preventDefault();
+            const id = document.getElementById("item-id").value;
+            const nama = document.getElementById("nama-barang").value.trim();
+            const pn = document.getElementById("pn").value.trim();
+            const sn = document.getElementById("sn").value.trim();
+            const qty = Number(document.getElementById("qty").value);
+            const status = document.getElementById("status-transaksi").value;
+            const kondisi = document.getElementById("kondisi").value;
+            const keterangan = document.getElementById("keterangan").value.trim();
+
+            if (id) {
+                const index = inventoryList.findIndex(item => item.id == id);
+                if (index !== -1) {
+                    inventoryList[index] = { id: Number(id), nama, pn, sn, qty, status, kondisi, keterangan };
+                }
+            } else {
+                const newId = Date.now();
+                inventoryList.push({ id: newId, nama, pn, sn, qty, status, kondisi, keterangan });
+            }
+
+            saveState();
+            closeModal();
+        }
+
+        function editItem(id) {
+            const item = inventoryList.find(i => i.id == id);
+            if (!item) return;
+
+            document.getElementById("item-id").value = item.id;
+            document.getElementById("nama-barang").value = item.nama;
+            document.getElementById("pn").value = item.pn;
+            document.getElementById("sn").value = item.sn;
+            document.getElementById("qty").value = item.qty;
+            document.getElementById("status-transaksi").value = item.status;
+            document.getElementById("kondisi").value = item.kondisi;
+            document.getElementById("keterangan").value = item.keterangan;
+
+            document.getElementById("modal-title").innerText = "Edit Data Inventaris Tools";
+            document.getElementById("modal-form").classList.remove("hidden");
+        }
+
+        function deleteItem(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus data tools ini?")) {
+                inventoryList = inventoryList.filter(item => item.id != id);
+                saveState();
+            }
+        }
+    </script>
+</body>
+</html>
